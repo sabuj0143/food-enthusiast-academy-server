@@ -60,16 +60,6 @@ async function run() {
 
             res.send({ token });
         })
-         //Warning: use verifyJwt before using verifyAdmin 
-        //  const verifyAdmin = async (req, res, next) => {
-        //     const email = req.decoded.email;
-        //     const query = { email: email }
-        //     const user = await usersCollection.findOne(query)
-        //     if (user?.role !== 'admin') {
-        //         return res.status(403).send({ error: true, message: 'forbidden message' })
-        //     }
-        //     next();
-        // }
         // Menu API
         app.get('/classes', async (req, res) => {
             const result = await classCollection.find().toArray();
@@ -93,29 +83,6 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
-        // admin vs user checks
-        // app.get('/users/admin/:email', verifyJwt, async (req, res) => {
-        //     const email = req.params.email;
-        //     if (req.decoded.email !== email) {
-        //         res.send({ admin: false })
-        //     }
-        //     const query = { email: email }
-        //     const user = await usersCollection.findOne(query);
-        //     const result = { admin: user?.role === 'admin' };
-        //     res.send(result);
-        // })
-        // Admin vs users
-        // app.patch('/users/admin/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const filter = { _id: new ObjectId(id) }
-        //     const updateDoc = {
-        //         $set: {
-        //             role: 'admin'
-        //         },
-        //     };
-        //     const result = await usersCollection.updateOne(filter, updateDoc);
-        //     res.send(result);
-        // })
       
         
 

@@ -53,8 +53,8 @@ async function run() {
         const classCollection = client.db("foodDb").collection("classes");
         const selectCollection = client.db("foodDb").collection("selects");
 
-         // JWT 
-         app.post('/jwt', (req, res) => {
+        // JWT 
+        app.post('/jwt', (req, res) => {
             const user = req.body;
             // console.log(user);
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10h' })
@@ -71,7 +71,7 @@ async function run() {
             }
             next();
         }
-        // Menu API
+        // Classes API
         app.get('/classes', async (req, res) => {
             const result = await classCollection.find().toArray();
             res.send(result);
@@ -83,7 +83,7 @@ async function run() {
             res.send(result);
         })
         // Users API Get
-        app.get('/users',  async (req, res) => {
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
@@ -101,7 +101,7 @@ async function run() {
             res.send(result);
         })
         // admin vs user checks
-        app.get('/users/admin/:email',  async (req, res) => {
+        app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
             if (req.decoded.email !== email) {
                 res.send({ admin: false })
@@ -111,8 +111,8 @@ async function run() {
             const result = { admin: user?.role === 'admin' };
             res.send(result);
         })
-         // Admin vs users
-         app.patch('/users/admin/:id', async (req, res) => {
+        // Admin vs users
+        app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -121,6 +121,27 @@ async function run() {
                 },
             };
             const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+        // Selected collection get
+        // app.get('/selects', async (req, res) => {
+        //     const email = req.query.email;
+        //     if (!email) {
+        //         return res.send([]);
+        //     }
+        //     const decodedEmail = req.decoded.email;
+        //     if (email !== decodedEmail) {
+        //         return res.status(403).send({ error: true, Message: "porviden access" });
+        //     }
+        //     const query = { email: email }
+        //     const result = await selectCollection.find(query).toArray();
+        //     res.send(result);
+        // })
+
+        // Selected Collection post
+        app.post('/selects', async (req, res) => {
+            const item = req.body;
+            const result = await selectCollection.insertOne(item);
             res.send(result);
         })
          // Cart collection get
@@ -138,14 +159,7 @@ async function run() {
             res.send(result);
         })
 
-        // cart Collection post
-        app.post('/selects', async (req, res) => {
-            const item = req.body;
-            const result = await selectCollection.insertOne(item);
-            res.send(result);
-        })
-      
-        
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });

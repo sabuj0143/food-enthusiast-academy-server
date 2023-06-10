@@ -167,7 +167,7 @@ async function run() {
             const result = await selectCollection.insertOne(item);
             res.send(result);
         })
-         // Cart collection get
+         // selects collection get
          app.get('/selects', verifyJwt, async (req, res) => {
             const email = req.query.email;
             if (!email) {
@@ -179,6 +179,13 @@ async function run() {
             }
             const query = { email: email }
             const result = await selectCollection.find(query).toArray();
+            res.send(result);
+        })
+        // selects Collection delete
+        app.delete('/selects/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await selectCollection.deleteOne(query)
             res.send(result);
         })
 

@@ -146,21 +146,6 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
-        // Selected collection get
-        // app.get('/selects', async (req, res) => {
-        //     const email = req.query.email;
-        //     if (!email) {
-        //         return res.send([]);
-        //     }
-        //     const decodedEmail = req.decoded.email;
-        //     if (email !== decodedEmail) {
-        //         return res.status(403).send({ error: true, Message: "porviden access" });
-        //     }
-        //     const query = { email: email }
-        //     const result = await selectCollection.find(query).toArray();
-        //     res.send(result);
-        // })
-
         // Selected Collection post
         app.post('/selects', async (req, res) => {
             const item = req.body;
@@ -183,7 +168,7 @@ async function run() {
         })
         // selects Collection delete
         app.delete('/selects/:id', async (req, res) => {
-            const id = req.params.id;
+            console.log(id);
             const query = { _id: new ObjectId(id) }
             const result = await selectCollection.deleteOne(query)
             res.send(result);

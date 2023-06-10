@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const app = express();
@@ -51,6 +51,7 @@ async function run() {
 
         const usersCollection = client.db("foodDb").collection("users");
         const classCollection = client.db("foodDb").collection("classes");
+        const selectCollection = client.db("foodDb").collection("selects");
 
          // JWT 
          app.post('/jwt', (req, res) => {
@@ -60,6 +61,16 @@ async function run() {
 
             res.send({ token });
         })
+        // Admin instructor verification
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ error: true, message: 'forbidden message' })
+            }
+            next();
+        }
         // Menu API
         app.get('/classes', async (req, res) => {
             const result = await classCollection.find().toArray();
@@ -72,7 +83,7 @@ async function run() {
             res.send(result);
         })
         // Users API Get
-        app.get('/users', async (req, res) => {
+        app.get('/users',  async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
@@ -87,6 +98,50 @@ async function run() {
                 return res.send("User already exists")
             }
             const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
+        // admin vs user checks
+        app.get('/users/admin/:email',  async (req, res) => {
+            const email = req.params.email;
+            if (req.decoded.email !== email) {
+                res.send({ admin: false })
+            }
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            const result = { admin: user?.role === 'admin' };
+            res.send(result);
+        })
+         // Admin vs users
+         app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    role: 'admin',
+                },
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+         // Cart collection get
+         app.get('/selects', verifyJwt, async (req, res) => {
+            const email = req.query.email;
+            if (!email) {
+                return res.send([]);
+            }
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ error: true, Message: "porviden access" });
+            }
+            const query = { email: email }
+            const result = await selectCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // cart Collection post
+        app.post('/selects', async (req, res) => {
+            const item = req.body;
+            const result = await selectCollection.insertOne(item);
             res.send(result);
         })
       

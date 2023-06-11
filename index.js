@@ -52,6 +52,7 @@ async function run() {
         const usersCollection = client.db("foodDb").collection("users");
         const classCollection = client.db("foodDb").collection("classes");
         const selectCollection = client.db("foodDb").collection("selects");
+        const paymentCollection = client.db("foodDb").collection("payments");
 
         // JWT 
         app.post('/jwt', (req, res) => {
@@ -100,7 +101,7 @@ async function run() {
             res.send(result);
         })
         // admin vs user checks
-        app.get('/users/admin/:email',  verifyJwt, async (req, res) => {
+        app.get('/users/admin/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
             if (req.decoded.email !== email) {
                 res.send({ admin: false })
@@ -111,7 +112,7 @@ async function run() {
             res.send(result);
         })
         // admin vs user checks
-        app.get('/users/instructor/:email',  verifyJwt, async (req, res) => {
+        app.get('/users/instructor/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
             if (req.decoded.email !== email) {
                 res.send({ admin: false })
@@ -145,14 +146,15 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
-        // Selected Collection post
+        // Selects post api
         app.post('/selects', async (req, res) => {
             const item = req.body;
+            console.log(item);
             const result = await selectCollection.insertOne(item);
             res.send(result);
-        })
-         // selects collection get
-         app.get('/selects', verifyJwt, async (req, res) => {
+        } )
+        // selects collection get
+        app.get('/selects', verifyJwt, async (req, res) => {
             const email = req.query.email;
             if (!email) {
                 return res.send([]);
@@ -167,10 +169,35 @@ async function run() {
         })
         // selects Collection delete
         app.delete('/selects/:id', async (req, res) => {
+            const id = req.params.id;
             console.log(id);
             const query = { _id: new ObjectId(id) }
             const result = await selectCollection.deleteOne(query)
             res.send(result);
+        })
+         // create-payment-intent api
+         app.post('/create-payment-intent', verifyJwt, async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            })
+        })
+
+        // Payment Api
+        app.post('/payments', verifyJwt, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+
+            const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
+            const deleteResult = await selectCollection.deleteMany(query);
+
+            res.send({ insertResult, deleteResult });
         })
 
 

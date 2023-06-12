@@ -52,7 +52,6 @@ async function run() {
         const usersCollection = client.db("foodDb").collection("users");
         const classCollection = client.db("foodDb").collection("classes");
         const selectCollection = client.db("foodDb").collection("selects");
-        const paymentCollection = client.db("foodDb").collection("payments");
 
         // JWT 
         app.post('/jwt', (req, res) => {

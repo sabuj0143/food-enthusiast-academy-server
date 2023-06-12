@@ -170,37 +170,11 @@ async function run() {
         // selects Collection delete
         app.delete('/selects/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
             const query = { _id: new ObjectId(id) }
             const result = await selectCollection.deleteOne(query)
             res.send(result);
         })
-         // create-payment-intent api
-         app.post('/create-payment-intent', verifyJwt, async (req, res) => {
-            const { price } = req.body;
-            const amount = price * 100;
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: amount,
-                currency: 'usd',
-                payment_method_types: ['card']
-            })
-            res.send({
-                clientSecret: paymentIntent.client_secret,
-            })
-        })
-
-        // Payment Api
-        app.post('/payments', verifyJwt, async (req, res) => {
-            const payment = req.body;
-            const insertResult = await paymentCollection.insertOne(payment);
-
-            const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
-            const deleteResult = await selectCollection.deleteMany(query);
-
-            res.send({ insertResult, deleteResult });
-        })
-
-
+        
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
